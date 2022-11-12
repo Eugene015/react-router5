@@ -1,21 +1,16 @@
 import React from "react";
+import { useRouteMatch } from "react-router-dom";
 import { Redirect } from "react-router-dom";
 import { Switch } from "react-router-dom";
 
-import { Link, NavLink, Route, useParams } from "react-router-dom";
+import { NavLink, Route, useParams } from "react-router-dom";
 
 function App() {
   return (
     <div className="p-8">
       <Switch>
         <Route path="/" exact component={HomePage} />
-        <Route path="/users" component={Users} />
-        <Route path="/userslist" component={UsersList} />
-        <Redirect from="/users" to="/userslist" />
-        <Route path="/userslist/:userId/profile" component={UserPage} />
-        <Route path="/userslist/:userId/edit" component={EditUserPage} />
-        <Route path="/userslist/:userId" component={UserPage} />
-        <Redirect from="*" to="/userslist/:userId/profile" />
+        <Route path="/users/:userId?" component={Users} />
         <Redirect from="*" to="/" />
       </Switch>
     </div>
@@ -32,10 +27,19 @@ const HomePage = () => {
 };
 
 const Users = () => {
+  const params = useParams();
+  const { userId } = params;
+  const { path } = useRouteMatch();
+
   return (
     <>
-      <h1>Users Layout</h1>
-      <UsersList />
+      <h1 className="text-3xl font-bold pb-6">Users Layout</h1>
+      <Switch>
+        <Route path={path + "/profile"} component={UserPage} />
+        <Route path={path + "/edit"} component={EditUserPage} />
+        <Route exact path="/users" component={UsersList} />
+        <Redirect from="*" to={path + userId + "/profile"} />
+      </Switch>
     </>
   );
 };
@@ -65,62 +69,51 @@ const UsersList = () => {
   ];
   return (
     <>
-      <h1 className="text-3xl font-bold py-6">Users Layout</h1>
-      <ul className="list-none pb-6">
-        {users.map((user) => {
-          return (
-            <li key={user.id}>
-              <Link to={`/users/${user.id}/profile`}>{user.title}</Link>
-            </li>
-          );
-        })}
+      <h1 className="text-3xl font-bold pb-6">Users List Page</h1>
+      <ul className="pb-6">
+        {users.map((user) => (
+          <li key={user.id}>
+            <NavLink to={`users/${user.id}/profile`}>{user.title}</NavLink>
+          </li>
+        ))}
       </ul>
-
-      <div>
-        <Link to="/">Home page</Link>
-      </div>
+      <NavLink to="/">Home Page</NavLink>
     </>
   );
 };
 
 const UserPage = (users) => {
   const { userId } = useParams();
-  console.log(users);
-  console.log(userId);
 
-  const getUser = (userId) => users.find(({ id }) => String(id) === userId);
-  const user = getUser(userId);
-  console.log(user);
   return (
     <>
-      <h1 className="text-3xl font-bold py-6">User Page</h1>
-      <h1>{user}</h1>
-
+      <h1 className="text-3xl font-bold pb-6">User Page</h1>
       <div>
-        <NavLink to="edit">User edit page</NavLink>
+        <NavLink to={`/users/${userId}/edit`}>User Edit Page </NavLink>
       </div>
       <div>
-        <NavLink to="users">Users list</NavLink>
+        <NavLink to="/users">Users List</NavLink>
       </div>
+      <div>UserId: {userId}</div>
     </>
   );
 };
 
 const EditUserPage = () => {
-  const handleClick = () => {
-    console.log("click");
-  };
+  const { userId } = useParams();
   return (
     <>
-      <h1 className="text-3xl font-bold py-6">Edit User Page</h1>
+      <h1 className="text-3xl font-bold pb-6">Edit User Page</h1>
       <div>
-        <NavLink to=":userId">User Page</NavLink>
+        <NavLink to={`/users/${userId}/profile`}>User Page</NavLink>
       </div>
       <div>
-        <NavLink onClick={handleClick}>Another User Page</NavLink>
+        <NavLink to={`/users/${Number(userId) + 1}/profile`}>
+          Next User Page
+        </NavLink>
       </div>
       <div>
-        <NavLink to="userlist">Users List</NavLink>
+        <NavLink to={"/users"}>Users List</NavLink>
       </div>
     </>
   );
